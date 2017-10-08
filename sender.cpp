@@ -1,4 +1,3 @@
-
 #include"util.hpp"
 
 #define DELAY_FACTOR 100000
