@@ -50,6 +50,13 @@ void print_addr(long int a)
 
 }
 
+int new_addr(ADDR_PTR *BASE_ADDR, int index)
+{
+ return ( ( BASE_ADDR >> 6) + (ADDR_PTR*) index) << 6;
+}
+
+#define MSG 0x1010
+
 int main(int argc, char **argv)
 {
 	//Strategy: Keep on flushing the cache line, so that receiver knows
@@ -63,71 +70,73 @@ int main(int argc, char **argv)
 	ADDR_PTR *BASE_ADDR;
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
-	ADDR_PTR  TAG_INCR=(0x1 << 12);
+	ADDR_PTR  TAG_INCR=(0x1 << 9);
 	
 	int i,j,k;
 
+	long int msg = MSG;
+
 	BASE_ADDR = (ADDR_PTR *)malloc(sizeof(int)* 1024 * 16*16);
 	
+	BASE_ADDR = BASE_ADDR + TAG_INCR;
+	BASE_ADDR = BASE_ADDR & 0xFFFFFFFFFFFFF03F
+
 	print_addr((long int) BASE_ADDR);
 
 	//Now progressively test each set (it can have upto 8 tags)
 	for(i=0; i<TEST_LENGTH; i++) 
 	{
-		TARGET_ADDR = BASE_ADDR;
-/*
-			//Flush the Cache lines
-			for(j=0; j<SET_COUNT; j++)
+		for(j=0; j<SETS; j++)
+		{
+			if(msg & 0x1)
 			{
-			clflush(TARGET_ADDR);
-			delay_short();
-			TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-			}
-*/
-			//Fill the entire cache set
-                        TARGET_ADDR = BASE_ADDR;
-			TARGET_BASE = BASE_ADDR;
-                        for(j=0; j<SET_COUNT; j++)
-                        {
-				//Fill the block
-				for(k=0; k<BLOCK_COUNT; k++)
-                        	{	
-					*TARGET_ADDR =(long int) JUNK;
-					TARGET_ADDR = TARGET_ADDR + 0x1;
+				TARGET_ADDR = new_addr(BASE_ADDR, j);
+				
+				//Fill the entire cache set
+				TARGET_BASE = TARGET_ADDR;
+				for(k=0; k<SET_COUNT; k++)
+				{
+					//Fill the block
+					for(k=0; k<BLOCK_COUNT; k++)
+					{	
+						*TARGET_ADDR =(long int) JUNK;
+						TARGET_ADDR = TARGET_ADDR + 0x1;
+					}
+				TARGET_BASE= TARGET_BASE + TAG_INCR;
+				TARGET_ADDR = TARGET_BASE;	
+
 				}
-                        TARGET_BASE= TARGET_BASE + TAG_INCR;
-			TARGET_ADDR = TARGET_BASE;	
 
-                        }
 
-			//Read the entire Cache set
-                        TARGET_ADDR = BASE_ADDR;
-                        TARGET_BASE = BASE_ADDR;
-                        for(j=0; j<SET_COUNT; j++)
-                        {
-                                for(k=0; k<BLOCK_COUNT; k++)
-                                {
-                                        *TARGET_ADDR = *TARGET_ADDR + (long int) 0x1;
-                                        TARGET_ADDR = TARGET_ADDR + 0x1;
-                                }
-                        TARGET_BASE= TARGET_BASE + TAG_INCR;
-                        TARGET_ADDR = TARGET_BASE;
 
-                        }
-/*
+				TARGET_ADDR = new_addr(BASE_ADDR, j);
+				
+				//Fill the entire cache set
+				TARGET_BASE = TARGET_ADDR;
+				for(k=0; k<SET_COUNT; k++)
+				{
+					//Fill the block
+					for(k=0; k<BLOCK_COUNT; k++)
+					{	
+						*TARGET_ADDR =(long int) JUNK;
+						TARGET_ADDR = TARGET_ADDR + 0x1;
+					}
+				TARGET_BASE= TARGET_BASE + TAG_INCR;
+				TARGET_ADDR = TARGET_BASE;	
 
-                        TARGET_ADDR = BASE_ADDR;
-                        //Flush the Cache lines
-                        for(j=0; j<SET_COUNT; j++)
-                        {
-                        clflush(TARGET_ADDR);
-                        delay_short();
-                        TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-                        }
-		//Wait for sometime so that the sender can populate
-*/		delay();
+                        	}
+			}
+
+			else
+			{
+				delay();
+			}
+
+			msg = msg >> 1;
+		}
 
 	}
+
 
 	printf("Please type a message.\n");
 

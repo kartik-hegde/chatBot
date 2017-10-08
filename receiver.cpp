@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	ADDR_PTR *BASE_ADDR;
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
-	ADDR_PTR  TAG_INCR=(0x1 << 12);
+	ADDR_PTR  TAG_INCR=(0x1 << 9);
 	ADDR_PTR  GET_TIME_ADDR;
 
 	int i,j,k;
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
 	TARGET_BASE = BASE_ADDR;
 
-		for(i=0; i<SETS; i++) 
+	for(i=0; i<SETS; i++) 
 	{
 		//Initialize the score
 		score = 0;
