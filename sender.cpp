@@ -3,7 +3,7 @@
 #define DELAY_FACTOR 1000
 #define DELAY_FACTOR_SHORT 100
 
-#define SET_COUNT 	8
+#define WAY_COUNT 	8
 #define BLOCK_COUNT	8
 #define SETS 		64
 #define SET_SIZE	(0x1 << 3)
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
 	ADDR_PTR  GET_TIME_ADDR;
-    ADDR_PTR TAG=(0x1 << 9);
+    	ADDR_PTR TAG_INCR=(0x1 << 9);
 
 	int i,j,k,l;
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 				TARGET_ADDR = new_addr(BASE_ADDR, j);
 				//Fill the entire cache set
 				TARGET_BASE = TARGET_ADDR;
-				for(k=0; k<SET_COUNT; k++)
+				for(k=0; k<WAY_COUNT; k++)
 				{
 					//Fill the block
 					for(l=0; l<BLOCK_COUNT; l++)
@@ -113,12 +113,11 @@ int main(int argc, char **argv)
 				}
 
 
-
 				TARGET_ADDR = new_addr(BASE_ADDR, j);
 				
 				//Fill the entire cache set
 				TARGET_BASE = TARGET_ADDR;
-				for(k=0; k<SET_COUNT; k++)
+				for(k=0; k<WAY_COUNT; k++)
 				{
 					//Fill the block
 					for(l=0; l<BLOCK_COUNT; l++)

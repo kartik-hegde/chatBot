@@ -1,10 +1,10 @@
 #include "util.hpp"
 #include "inttypes.h"
 
-#define DELAY_FACTOR 6000000
+#define DELAY_FACTOR 100000000
 #define DELAY_FACTOR_SHORT 100
 
-#define SET_COUNT 	8
+#define WAY_COUNT 	8
 #define SETS 		64
 #define SET_SIZE	(0x1 << 3)
 
@@ -54,6 +54,11 @@ void print_addr(long int a)
 
 }
 
+ADDR_PTR* base_address_gen(long int BASE_ADDR)
+{
+	return (ADDR_PTR*)(((BASE_ADDR >> 12) + 2) << 12);
+}
+
 int main(int argc, char **argv)
 {
         //Prepare to find out the cache-line mapped:
@@ -68,17 +73,19 @@ int main(int argc, char **argv)
 	ADDR_PTR *BASE_ADDR;
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
-	ADDR_PTR  TAG_INCR=(0x1 << 12);
+	ADDR_PTR  TAG_INCR=(0x1 << 13);
 	ADDR_PTR  GET_TIME_ADDR;
 
 	int i,j,k;
 	volatile int time;
 	int score_array[SETS];
-    int time_array[SETS];
+    	int time_array[SETS];
 
 	printf("Performing Malloc \n");
 
 	BASE_ADDR = (ADDR_PTR *)malloc(sizeof(int)* 1024 * 16 * 16 * 8);
+	BASE_ADDR = base_address_gen((long int)BASE_ADDR);
+
 	TARGET_BASE = BASE_ADDR;
 	printf("Now starting Tests \n");
 
@@ -86,7 +93,7 @@ int main(int argc, char **argv)
 	for(i=0; i < SETS; i++)
 	{
 		score_array[i] = 0;
-        time_array[i] = 0;
+        	time_array[i] = 0;
 	}
 
 	for(k=0; k<NUM_TESTS; k++) 
@@ -97,11 +104,11 @@ int main(int argc, char **argv)
 		//Test many times for each line to minimize noise effects
 		for(i=0; i<SETS; i++)
 		{
-            print_addr((long int)TARGET_BASE);
+            
  			TARGET_ADDR = TARGET_BASE;
 
 			//Write junk to all the cache lines
-			for(j=0; j<SET_COUNT; j++)
+			for(j=0; j<WAY_COUNT; j++)
 			{
 				*TARGET_ADDR = JUNK;
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
@@ -109,37 +116,37 @@ int main(int argc, char **argv)
 
 			//Read the Junks
  			TARGET_ADDR = TARGET_BASE;
-			for(j=0; j<SET_COUNT; j++)
+			for(j=0; j<WAY_COUNT; j++)
 			{
 				*TARGET_ADDR = *TARGET_ADDR + 0x1;
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
+		}
 
-			delay();
-
+		delay();
+		for(i=0; i<SETS; i++)
+		{
 			time = 0;
 
 			TARGET_ADDR = TARGET_BASE;
 
-
-			//calculate the access time to each cache set 
-			for(j=0; j<SET_COUNT; j++)
+			//calculate the access time to every way in each cache set 
+			for(j=0; j<WAY_COUNT; j++)
 			{
-				GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
+				GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR + rand() % 8;
 				time = time + measure_one_block_access_time(GET_TIME_ADDR);
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
 
 			//printf("Time taken for %d set in %dth iteration is: %d\n", i,k,time);
-            time_array[i] = time;
+            		time_array[i] = time_array[i] + time;
 
 			//If the sender
 			if(time > THRESHOLD)
 				//Accumulate the score
-				score_array[i]= score_array[i] + 0x1;
+				score_array[i] = score_array[i] + 0x1;
 
 			TARGET_BASE = TARGET_BASE + SET_SIZE;
-
 		}
 
 	}
@@ -158,7 +165,7 @@ int main(int argc, char **argv)
 //		for(i=0; i<3;i++) {
                         TARGET_ADDR = TARGET_BASE;
 			//Write junk to all the cache lines
-                        for(j=0; j<SET_COUNT; j++)
+                        for(j=0; j<WAY_COUNT; j++)
                         {
                         	*TARGET_ADDR = JUNK;
                         	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
@@ -167,7 +174,7 @@ int main(int argc, char **argv)
                         
                         //Read the Junks
                         TARGET_ADDR = TARGET_BASE;
-                        for(j=0; j<SET_COUNT; j++)
+                        for(j=0; j<WAY_COUNT; j++)
                         {
                         	*TARGET_ADDR = *TARGET_ADDR + 0x1;
                         	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
@@ -181,7 +188,7 @@ int main(int argc, char **argv)
                         
                         TARGET_ADDR = TARGET_BASE;
                         //calculate the access time to each cache set 
-                        for(j=0; j<SET_COUNT; j++)
+                        for(j=0; j<WAY_COUNT; j++)
                         {
                         	GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
                         	time = time + measure_one_block_access_time(GET_TIME_ADDR);
