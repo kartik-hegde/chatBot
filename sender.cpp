@@ -14,9 +14,10 @@
 #define JUNK		0xBABE
 
 inline void clflush(volatile void *p)
-            {
-                asm volatile ("clflush (%0)" :: "r"(p));
-            }
+{
+    asm volatile ("clflush (%0)" :: "r"(p));
+}
+
 int delay()
 {
 	int i;
@@ -27,8 +28,6 @@ int delay()
 	
 	return 0;
 }
-	
-
 
 int delay_short()
 {
@@ -77,7 +76,6 @@ int main(int argc, char **argv)
 	ADDR_PTR *BASE_ADDR;
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
-	ADDR_PTR  TAG_INCR=(0x1 << 9);
 	ADDR_PTR  GET_TIME_ADDR;
 
 	int i,j,k,l;
