@@ -3,8 +3,6 @@
 #define DELAY_FACTOR 1000
 #define DELAY_FACTOR_SHORT 100
 
-#define MEM_RW(x)   	(*(volatile unsigned long *)(x))
-
 #define SET_COUNT 	8
 #define BLOCK_COUNT	8
 #define SETS 		64
@@ -77,6 +75,7 @@ int main(int argc, char **argv)
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
 	ADDR_PTR  GET_TIME_ADDR;
+    ADDR_PTR TAG=(0x1 << 9);
 
 	int i,j,k,l;
 

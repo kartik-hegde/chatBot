@@ -38,7 +38,7 @@ int delay_short()
 	
 void print_time_score(int time_array[], int score_array[], int size)
 {
-	for(i=0; i<size; i++)
+	for(int i=0; i<size; i++)
 	{
 		printf("set #%d: time = %d, score = %d\n", i, time_array[i], score_array[i]);
 	}
@@ -144,13 +144,13 @@ int main(int argc, char **argv)
 
 	}
 
-	int set_num = print_time_score(time_array, score_array, SETS);
+	print_time_score(time_array, score_array, SETS);
 
-	printf("Found the Sender base: %d\n" , set_num);
+	//printf("Found the Sender base: %d\n" , set_num);
 
-	//Set the base address now
-	BASE_ADDR = BASE_ADDR + (set_num * SET_SIZE);
-	TARGET_BASE = BASE_ADDR;
+	////Set the base address now
+	//BASE_ADDR = BASE_ADDR + (set_num * SET_SIZE);
+	//TARGET_BASE = BASE_ADDR;
 	
 	print_addr((long int) BASE_ADDR);
 	while(1){
