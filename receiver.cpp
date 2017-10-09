@@ -54,13 +54,6 @@ void print_addr(long int a)
 
 }
 
-void print_addr_more(long int a){
-    int ele = a % 8;
-    int set_index = (a >> 6) % 64;
-    int tag = a >> 12;
-	printf("Addr: %lx, Tag: %x, SetIndex: %x, ele#%x\n", a, tag, set_index, ele);
-}
-
 
 ADDR_PTR* base_address_gen(long int BASE_ADDR)
 {
@@ -148,8 +141,6 @@ int main(int argc, char **argv)
 			for(j=0; j<WAY_COUNT; j++)
 			{
 				GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR + rand() % 8;
-                print_addr(GET_TIME_ADDR);
-                print_addr_more(GET_TIME_ADDR);
 				time = time + measure_one_block_access_time(GET_TIME_ADDR);
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
