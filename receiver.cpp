@@ -1,7 +1,7 @@
 #include "util.hpp"
 #include "inttypes.h"
 
-#define DELAY_FACTOR 100000000
+#define DELAY_FACTOR 1000000
 #define DELAY_FACTOR_SHORT 100
 
 #define WAY_COUNT 	8
@@ -83,7 +83,10 @@ int main(int argc, char **argv)
 
 	printf("Performing Malloc \n");
 
-	BASE_ADDR = (ADDR_PTR *)malloc(sizeof(int)* 1024 * 16 * 16 * 8);
+	BASE_ADDR = (ADDR_PTR *)malloc(sizeof(ADDR_PTR)* 1024 * 16 * 16 * 8);
+	for(i=0; i<1024*16*16*8; i++){
+		BASE_ADDR[i] = (rand() % 1024) * (rand() % 1000) + i;
+	}
 	BASE_ADDR = base_address_gen((long int)BASE_ADDR);
 
 	TARGET_BASE = BASE_ADDR;
@@ -99,15 +102,12 @@ int main(int argc, char **argv)
 	for(k=0; k<NUM_TESTS; k++) 
 	{
 		TARGET_BASE = BASE_ADDR;
-
 		//print_addr((long int) TARGET_BASE);
 		//Test many times for each line to minimize noise effects
 		for(i=0; i<SETS; i++)
 		{
-            
+           		//Write junk to all the cache lines
  			TARGET_ADDR = TARGET_BASE;
-
-			//Write junk to all the cache lines
 			for(j=0; j<WAY_COUNT; j++)
 			{
 				*TARGET_ADDR = JUNK;
@@ -121,9 +121,15 @@ int main(int argc, char **argv)
 				*TARGET_ADDR = *TARGET_ADDR + 0x1;
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
+
+			TARGET_BASE = TARGET_BASE + SET_SIZE;
 		}
 
+		printf("delay starts\n");
 		delay();
+		printf("delay finishs\n");
+
+		TARGET_BASE = BASE_ADDR;
 		for(i=0; i<SETS; i++)
 		{
 			time = 0;
@@ -144,7 +150,7 @@ int main(int argc, char **argv)
 			//If the sender
 			if(time > THRESHOLD)
 				//Accumulate the score
-				score_array[i] = score_array[i] + 0x1;
+				score_array[i] = score_array[i] + 1;
 
 			TARGET_BASE = TARGET_BASE + SET_SIZE;
 		}

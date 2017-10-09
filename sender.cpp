@@ -82,8 +82,11 @@ int main(int argc, char **argv)
 	volatile int time, score;
 	long int msg = MSG;
 
-	BASE_ADDR = (ADDR_PTR*) malloc(sizeof(int)* 1024 * 16*16);
-	
+	// Initialize all pages
+	BASE_ADDR = (ADDR_PTR*) malloc(sizeof(ADDR_PTR)* 1024 * 16*16);
+	for (int i=0; i<1024 * 16 * 16; i++){
+		BASE_ADDR[i] = (rand() % 1024) * (rand() % 1024) + i;
+	}
 	BASE_ADDR = base_address_gen((long int)BASE_ADDR);
 
 	print_addr((long int) BASE_ADDR);
@@ -135,6 +138,9 @@ int main(int argc, char **argv)
 
 			msg = msg >> 1;
 		}
+
+		// mock test
+
 
 	}
 
