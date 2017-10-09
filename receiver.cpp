@@ -1,7 +1,7 @@
 #include"util.hpp"
 #include "inttypes.h"
 
-#define DELAY_FACTOR 10000000
+#define DELAY_FACTOR 6000000
 #define DELAY_FACTOR_SHORT 100
 
 #define MEM_RW(x)   	(*(volatile unsigned long *)(x))
@@ -15,9 +15,10 @@
 #define JUNK		0xDEADBEEF
 
 inline void clflush(volatile void *p)
-            {
-                asm volatile ("clflush (%0)" :: "r"(p));
-            }
+{
+	asm volatile ("clflush (%0)" :: "r"(p));
+}
+
 int delay()
 {
 	int i;
@@ -44,6 +45,7 @@ int find_max(int score_array[], int size)
 
 	for(i=0; i<size; i++)
 	{
+		printf("set #%d: value = %d\n", i, score_array[i]);
 		if(score_array[i] > max_value)
 		{	
 			max_value = score_array[i];
@@ -78,7 +80,7 @@ int main(int argc, char **argv)
 	ADDR_PTR *BASE_ADDR;
 	ADDR_PTR *TARGET_ADDR;
 	ADDR_PTR *TARGET_BASE;
-	ADDR_PTR  TAG_INCR=(0x1 << 9);
+	ADDR_PTR  TAG_INCR=(0x1 << 12);
 	ADDR_PTR  GET_TIME_ADDR;
 
 	int i,j,k;
@@ -90,35 +92,39 @@ int main(int argc, char **argv)
 	BASE_ADDR = (ADDR_PTR *)malloc(sizeof(int)* 1024 * 16 * 16 * 8);
 	TARGET_BASE = BASE_ADDR;
 	printf("Now starting Tests \n");
-
+/*
 	//Flush the caches for the test addresses
         for(i=0; i<SETS; i++)
         {
  		TARGET_ADDR = TARGET_BASE;
-		 for(j=0; j<SET_COUNT; j++)
-			{
+		for(j=0; j<SET_COUNT; j++)
+		{
 			clflush(TARGET_ADDR);
 			TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-			}
+		}
               	TARGET_BASE = TARGET_BASE + SET_SIZE;
 	}
 
 	delay();
-
+*/
 	//Now progressively test each set (it can hav( upt( 8 tags)
 
 
-	TARGET_BASE = BASE_ADDR;
 
-	for(i=0; i<SETS; i++) 
-	{
 		//Initialize the score
 		score = 0;
-		score_array[i] = 0;
+		for(i=0; i<SETS; i++)
+		{
+		  score_array[i] = 0;
+		}
 
-		print_addr((long int) TARGET_BASE);
+	for(k=0; k<NUM_TESTS; k++) 
+	{
+		TARGET_BASE = BASE_ADDR;
+
+		//print_addr((long int) TARGET_BASE);
 		//Test many times for each line to minimize noise effects
-		for(k=0; k<NUM_TESTS; k++)
+		for(i=0; i<SETS; i++)
 		{
  			TARGET_ADDR = TARGET_BASE;
 
@@ -126,21 +132,17 @@ int main(int argc, char **argv)
 			//Write junk to all the cache lines
 			for(j=0; j<SET_COUNT; j++)
 			{
-			*TARGET_ADDR = JUNK;
-			TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-			
+				*TARGET_ADDR = JUNK;
+				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
 			
 			//Read the Junks
  			TARGET_ADDR = TARGET_BASE;
 			for(j=0; j<SET_COUNT; j++)
-			{
-			*TARGET_ADDR = *TARGET_ADDR + 0x1;
-			TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-			
+			{		
+				*TARGET_ADDR = *TARGET_ADDR + 0x1;
+				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
-			
-			//Wait for sometime so that the sender can populate
 			delay();
 
 			time = 0;
@@ -151,23 +153,22 @@ int main(int argc, char **argv)
 			//calculate the access time to each cache set 
 			for(j=0; j<SET_COUNT; j++)
 			{
-			GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
-			time = time + measure_one_block_access_time(GET_TIME_ADDR);
-			TARGET_ADDR = TARGET_ADDR + TAG_INCR;
+				GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
+				time = time + measure_one_block_access_time(GET_TIME_ADDR);
+				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
 			
-			printf("Time taken for %d set in %dth iteration is: %d\n", i,k,time);
+			//printf("Time taken for %d set in %dth iteration is: %d\n", i,k,time);
 
 			//If the sender 
 			if(time > THRESHOLD)
-				score++;
-		
-			
-		}
-		//Accumulate the score
-		score_array[i]= score_array[i] + score;
+				//Accumulate the score
+				score_array[i]= score_array[i] + 0x1;
 
-		TARGET_BASE = TARGET_BASE + SET_SIZE;
+			TARGET_BASE = TARGET_BASE + SET_SIZE;
+				
+		}
+
 	}
 	
 	int set_num = find_max(score_array, SETS);
@@ -186,8 +187,8 @@ int main(int argc, char **argv)
 			//Write junk to all the cache lines
                         for(j=0; j<SET_COUNT; j++)
                         {
-                        *TARGET_ADDR = JUNK;
-                        TARGET_ADDR = TARGET_ADDR + TAG_INCR;
+                        	*TARGET_ADDR = JUNK;
+                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
                         
                         }
                         
@@ -195,8 +196,8 @@ int main(int argc, char **argv)
                         TARGET_ADDR = TARGET_BASE;
                         for(j=0; j<SET_COUNT; j++)
                         {
-                        *TARGET_ADDR = *TARGET_ADDR + 0x1;
-                        TARGET_ADDR = TARGET_ADDR + TAG_INCR;
+                        	*TARGET_ADDR = *TARGET_ADDR + 0x1;
+                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
                         
                         }
 //		}
@@ -209,12 +210,12 @@ int main(int argc, char **argv)
                         //calculate the access time to each cache set 
                         for(j=0; j<SET_COUNT; j++)
                         {
-                        GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
-                        time = time + measure_one_block_access_time(GET_TIME_ADDR);
-                        TARGET_ADDR = TARGET_ADDR + TAG_INCR;
+                        	GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
+                        	time = time + measure_one_block_access_time(GET_TIME_ADDR);
+                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
                         }
                         
-                        printf("Time taken is: %d\n", time);
+//                        printf("Time taken is: %d\n", time);
 	}
 
 	printf("Please press enter.\n");
