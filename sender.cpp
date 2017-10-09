@@ -130,11 +130,10 @@ int main(int argc, char **argv)
 						delay_short();
 						TARGET_ADDR = TARGET_ADDR + 0x1;
 					}
-				TARGET_BASE= TARGET_BASE + TAG_INCR;
-				TARGET_ADDR = TARGET_BASE;	
-
-                        	}
-			  }
+                    TARGET_BASE= TARGET_BASE + TAG_INCR;
+                    TARGET_ADDR = TARGET_BASE;
+                }
+		    }
 
 			msg = msg >> 1;
 		}
