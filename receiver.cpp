@@ -1,4 +1,4 @@
-#include"util.hpp"
+#include "util.hpp"
 #include "inttypes.h"
 
 #define DELAY_FACTOR 6000000
@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 	int i,j,k;
 	volatile int time, score;
 	int score_array[SETS];
+    int time_array[SETS];
 
 	printf("Performing Malloc \n");
 
@@ -111,12 +112,13 @@ int main(int argc, char **argv)
 
 
 
-		//Initialize the score
-		score = 0;
-		for(i=0; i<SETS; i++)
-		{
-		  score_array[i] = 0;
-		}
+	//Initialize the score
+	score = 0;
+	for(i=0; i < SETS; i++)
+	{
+		score_array[i] = 0;
+        time_array[i] = 0;
+	}
 
 	for(k=0; k<NUM_TESTS; k++) 
 	{
@@ -126,23 +128,24 @@ int main(int argc, char **argv)
 		//Test many times for each line to minimize noise effects
 		for(i=0; i<SETS; i++)
 		{
+            print_addr(TARGET_BASE);
  			TARGET_ADDR = TARGET_BASE;
 
-			
 			//Write junk to all the cache lines
 			for(j=0; j<SET_COUNT; j++)
 			{
 				*TARGET_ADDR = JUNK;
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
-			
+
 			//Read the Junks
  			TARGET_ADDR = TARGET_BASE;
 			for(j=0; j<SET_COUNT; j++)
-			{		
+			{
 				*TARGET_ADDR = *TARGET_ADDR + 0x1;
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
+
 			delay();
 
 			time = 0;
@@ -157,20 +160,21 @@ int main(int argc, char **argv)
 				time = time + measure_one_block_access_time(GET_TIME_ADDR);
 				TARGET_ADDR = TARGET_ADDR + TAG_INCR;
 			}
-			
-			//printf("Time taken for %d set in %dth iteration is: %d\n", i,k,time);
 
-			//If the sender 
+			//printf("Time taken for %d set in %dth iteration is: %d\n", i,k,time);
+            time_array[i] = time;
+
+			//If the sender
 			if(time > THRESHOLD)
 				//Accumulate the score
 				score_array[i]= score_array[i] + 0x1;
 
 			TARGET_BASE = TARGET_BASE + SET_SIZE;
-				
+
 		}
 
 	}
-	
+
 	int set_num = find_max(score_array, SETS);
 
 	printf("Found the Sender base: %d\n" , set_num);
