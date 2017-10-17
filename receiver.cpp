@@ -167,43 +167,6 @@ int main(int argc, char **argv)
 	//TARGET_BASE = BASE_ADDR;
 	
 	print_addr((long int) BASE_ADDR);
-	while(1){
-		//Read Write
-//		for(i=0; i<3;i++) {
-                        TARGET_ADDR = TARGET_BASE;
-			//Write junk to all the cache lines
-                        for(j=0; j<WAY_COUNT; j++)
-                        {
-                        	*TARGET_ADDR = JUNK;
-                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-                        
-                        }
-                        
-                        //Read the Junks
-                        TARGET_ADDR = TARGET_BASE;
-                        for(j=0; j<WAY_COUNT; j++)
-                        {
-                        	*TARGET_ADDR = *TARGET_ADDR + 0x1;
-                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-                        
-                        }
-//		}
-                        
-                        //Wait for sometime so that the sender can populate
-                        delay();
-                        time = 0;
-                        
-                        TARGET_ADDR = TARGET_BASE;
-                        //calculate the access time to each cache set 
-                        for(j=0; j<WAY_COUNT; j++)
-                        {
-                        	GET_TIME_ADDR = (ADDR_PTR)TARGET_ADDR;
-                        	time = time + measure_one_block_access_time(GET_TIME_ADDR);
-                        	TARGET_ADDR = TARGET_ADDR + TAG_INCR;
-                        }
-                        
-//                        printf("Time taken is: %d\n", time);
-	}
 
 	printf("Please press enter.\n");
 
